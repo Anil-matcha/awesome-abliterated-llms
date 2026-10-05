@@ -6,7 +6,18 @@ This repository focuses on using the hosted endpoints through one API. It is a d
 
 “Abliterated” and “derestricted” describe modifications intended to reduce refusal behavior. They do not guarantee unrestricted responses, consistent behavior, or better answer quality. A hosted route name is not proof of the exact upstream checkpoint or license. Verify current terms and evaluate each model for your use case.
 
-**Last reviewed:** 2026-09-29
+**README and live capability snapshot reviewed:** 2026-10-06. Routes, prices, and model capabilities can change; check the linked live pages before use.
+
+## Contents
+
+- [Use cases](#use-cases)
+- [Quick start](#quick-start)
+- [Deployed endpoint catalog](#deployed-endpoint-catalog)
+- [Choose an endpoint for your workflow](#choose-an-endpoint-for-your-workflow)
+- [Streaming](#streaming)
+- [Request fields and limits](#request-fields-and-limits)
+- [Coding agents and tool calling](#coding-agents-and-tool-calling)
+- [Provenance and evaluation](#provenance-and-evaluation)
 
 ## Related Projects
 
@@ -14,7 +25,9 @@ This repository focuses on using the hosted endpoints through one API. It is a d
 - [Muapi API quick start](https://muapi.ai/docs/quick-start) — Authentication and request lifecycle.
 - [Muapi access keys](https://muapi.ai/access-keys) — Create an API key for the examples below.
 - [Broader language-model catalog](https://github.com/Anil-matcha/awesome-uncensored-llms) — Open-weight and community-reported models with source and provenance notes.
-- [awesome-uncensored-ai-models](https://github.com/Anil-matcha/awesome-uncensored-ai-models) — Directory for the language, image, and video catalogs.
+- [Awesome Uncensored Coding Models](https://github.com/Anil-matcha/awesome-uncensored-coding-models) — coding use cases, hosted candidates, benchmark runner, and agent setup.
+- [Awesome Uncensored AI Agents](https://github.com/Anil-matcha/awesome-uncensored-ai-agents) — general-purpose agent setup and safety guidance.
+- [Awesome Uncensored AI Models](https://github.com/Anil-matcha/awesome-uncensored-ai-models) — index for the language, image, and video catalogs.
 
 ## Quick start
 
@@ -41,6 +54,21 @@ curl "https://api.muapi.ai/api/v1/predictions/REQUEST_ID/result" \
 ```
 
 The Python example in [`examples/python/submit_and_poll.py`](examples/python/submit_and_poll.py) submits a prompt and polls until it completes. It uses only the Python standard library.
+
+## Use cases
+
+The hosted routes are useful for trying model variants through one API and adding text generation to an application. The exact route determines its supported inputs and behavior.
+
+| Use case | API path to consider | What to check |
+|---|---|---|
+| **One-shot question or chat turn** | A model-specific endpoint such as `/api/v1/qwen-3-8-27b-abliterated`. | Send one prompt; keep conversation state in your application if needed. Check per-model output limits and price. |
+| **Summaries, drafts, and transformations** | Model-specific endpoint; use `system_prompt` for task instructions. | Test against representative examples and preserve source facts. Do not treat a lower refusal rate as better writing or accuracy. |
+| **Image-grounded question** | A model-specific endpoint that lists image input support; supply `image_url`. | Confirm that the exact route accepts the image format and that the asset is accessible to the API. |
+| **Incremental UI output** | Append `/stream` to a model-specific endpoint. | Handle SSE chunks, errors, and the terminal `[DONE]` event in the client. |
+| **Coding answer from one prompt** | A text or vision-capable route suited to the input. | Compare the result with tests or a known answer. A code answer is not evidence of repository tool use. |
+| **Coding agent or multi-turn tool workflow** | Muapi’s OpenAI-compatible chat/agent endpoint rather than the single-turn route below. | Check the live model’s tool capability, exact agent protocol, tool-call round trip, and permissions. Start with [Awesome Uncensored Coding Models](https://github.com/Anil-matcha/awesome-uncensored-coding-models). |
+
+These model-specific generation endpoints accept one prompt per request; they do not expose an agent tool loop. Use the separate compatible chat endpoint for agent integrations and verify the capabilities at that route.
 
 ## Deployed endpoint catalog
 
@@ -84,6 +112,28 @@ Compare these points on the linked family pages before choosing an endpoint:
 
 Do not use a single “low-refusal score” as a quality ranking. Record the endpoint slug, date, prompt setup, and separate refusal behavior from accuracy, instruction following, latency, and cost.
 
+## Choose an endpoint for your workflow
+
+Start with the input and interaction shape you need, then compare exact models using the current model-specific landing pages.
+
+1. **Text only:** choose a text endpoint and keep the request small enough for its current input/output limits.
+2. **Image input:** use a route whose page and live model metadata both show vision support; test image delivery end to end.
+3. **Reasoning mode:** the live Muapi text list currently marks the two Qwen 3.8 abliterated/obliterated IDs as `thinking: true`. Confirm the dedicated route’s supported `thinking` option and current guidance before sending it.
+4. **Streaming:** use `/stream` when your application needs incremental events; preserve the same model-specific fields and parse SSE correctly.
+5. **Agent tools:** use the OpenAI-compatible endpoint and require `capabilities.tools: true`. A dedicated model route accepting a prompt does not itself make an agent integration.
+6. **Cost-sensitive batches:** check the current model price and output cap, estimate the number of requests, and monitor dashboard usage during a small trial.
+
+### Inspect live text-model capabilities
+
+Do not copy a model list into a long-lived integration. Query the model catalog and check the exact model ID and flags:
+
+```bash
+curl -s "https://api.muapi.ai/v1/models?type=text" \
+  -H "Authorization: Bearer $MUAPI_API_KEY"
+```
+
+For an agent, use the exact ID from the compatible endpoint’s own `/models` route when available. `capabilities.tools: true` indicates tool-call support in the listed API; test an actual call through your chosen agent before relying on it.
+
 ## Streaming
 
 Append `/stream` to the model endpoint and send the same prompt fields. The response uses Server-Sent Events:
@@ -108,6 +158,18 @@ The single-turn endpoint accepts:
 - `thinking` (optional, only for Qwen 3.8 Abliterated and Obliterated)
 
 These routes take one prompt per request. For multi-turn conversation state or additional sampling controls, use the [Muapi API reference](https://muapi.ai/docs/api-reference) and verify the model's supported chat-completions features. Tool calling is model-specific. No endpoint guarantees a particular answer or refusal policy.
+
+## Coding agents and tool calling
+
+The model-specific `/api/v1/{model}` examples above are single-turn generation calls. For coding agents, use the [OpenAI-compatible Chat Completions API](https://muapi.ai/docs/openai-compatible) or the relevant native agent integration, then select an exact model that advertises tool support on that endpoint. Muapi also documents [Codex CLI, Claude Code, and other coding-agent setup](https://muapi.ai/docs/ai-agent-install-chat-agents).
+
+Do not infer agent compatibility from a model family, model card, or the model-specific endpoint. Test a harmless read-only task first, then a bounded edit in a disposable workspace. Check the agent’s permissions, usage, and provider terms before connecting a real repository or channel.
+
+## Provenance and evaluation
+
+The endpoint slug identifies a deployed Muapi route; it does not verify the exact checkpoint, derivative method, license, or consistent refusal behavior. Follow the linked family page to its primary source where available, and keep upstream-family claims separate from claims about a hosted variant.
+
+There is no benchmark ranking in this repository. If you compare models, hold prompts and settings constant, use a task set relevant to your use case, repeat variable tasks, preserve raw results, and report failure cases. Score quality, instruction following, refusal behavior, latency, and cost separately. For coding-specific candidate workflows and an evaluation runner, see [Awesome Uncensored Coding Models](https://github.com/Anil-matcha/awesome-uncensored-coding-models).
 
 ## How to contribute
 
