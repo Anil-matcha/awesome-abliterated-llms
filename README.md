@@ -28,6 +28,7 @@ This repository focuses on using the hosted endpoints through one API. It is a d
 - [Awesome Uncensored Coding Models](https://github.com/Anil-matcha/awesome-uncensored-coding-models) — coding use cases, hosted candidates, benchmark runner, and agent setup.
 - [Awesome Uncensored AI Agents](https://github.com/Anil-matcha/awesome-uncensored-ai-agents) — general-purpose agent setup and safety guidance.
 - [Awesome Uncensored AI Models](https://github.com/Anil-matcha/awesome-uncensored-ai-models) — index for the language, image, and video catalogs.
+- [Spicy Lab](https://spicyapi.app) — Independent comparison site with an uncensored LLM / chat-model leaderboard (plus NSFW image and video rankings) and published methodology; not a generator.
 
 ## Quick start
 
