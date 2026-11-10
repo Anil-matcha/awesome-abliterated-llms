@@ -23,6 +23,7 @@ This repository focuses on using the hosted endpoints through one API. It is a d
 
 - [Muapi Abliterated LLM API](https://muapi.ai/abliterated-llm-api) — Live model lineup, per-token prices, endpoint details, and playground links.
 - [Muapi API quick start](https://muapi.ai/docs/quick-start) — Authentication and request lifecycle.
+- [Uncensored AI API guide](https://github.com/Anil-matcha/Uncensored-AI-API) — API onboarding, endpoint usage, and client setup for Muapi's abliterated model routes.
 - [Muapi access keys](https://muapi.ai/access-keys) — Create an API key for the examples below.
 - [Broader language-model catalog](https://github.com/Anil-matcha/awesome-uncensored-llms) — Open-weight and community-reported models with source and provenance notes.
 - [Awesome Uncensored Coding Models](https://github.com/Anil-matcha/awesome-uncensored-coding-models) — coding use cases, hosted candidates, benchmark runner, and agent setup.
